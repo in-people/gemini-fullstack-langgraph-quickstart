@@ -42,7 +42,8 @@ class WebSearchState(TypedDict):
     search_query: str
     id: str
 
-
+# dataclass装饰器，只需声明字段，无需定义方法，装饰器自动生成所需方法
+# 传统方式：需要显式定义__init__、__repr__、__eq__等多个特殊方法
 @dataclass(kw_only=True)
 class SearchStateOutput:
     running_summary: str = field(default=None)  # Final report

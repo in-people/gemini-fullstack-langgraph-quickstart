@@ -17,7 +17,8 @@ COPY frontend/ ./
 RUN npm run build
 
 # Stage 2: Python Backend
-FROM docker.io/langchain/langgraph-api:3.11
+# 本地测试，修改镜像为 langchain/langgraph-api:3.11，把docker.io去掉
+FROM langchain/langgraph-api:3.11
 
 # -- Install UV --
 # First install curl, then install UV using the standalone installer

@@ -9,21 +9,21 @@ class Configuration(BaseModel):
     """The configuration for the agent."""
 
     query_generator_model: str = Field(
-        default="gemini-2.0-flash",
+        default="qwen-plus",
         metadata={
             "description": "The name of the language model to use for the agent's query generation."
         },
     )
 
     reflection_model: str = Field(
-        default="gemini-2.5-flash",
+        default="qwen-plus",
         metadata={
             "description": "The name of the language model to use for the agent's reflection."
         },
     )
 
     answer_model: str = Field(
-        default="gemini-2.5-pro",
+        default="qwen-plus",
         metadata={
             "description": "The name of the language model to use for the agent's answer."
         },
@@ -39,6 +39,17 @@ class Configuration(BaseModel):
         metadata={"description": "The maximum number of research loops to perform."},
     )
 
+
+# 这个方法的主要功能是：
+
+# 1. **获取配置数据源** - 从传入的`RunnableConfig`中提取"configurable"部分，如果没有配置则使用空字典
+# 2. **合并环境变量和配置** - 遍历类的所有模型字段，优先从环境变量（大写形式）获取值，如果环境变量不存在则从配置中获取
+# 3. **过滤有效值** - 移除所有None值，只保留实际存在的配置值
+# 4. **创建实例** - 使用过滤后的配置值创建并返回新的Configuration实例
+
+# 这种方法允许配置通过多种方式提供：环境变量、运行时配置或默认值，为LangGraph代理提供了灵活的配置机制。
+
+# classmethod 类方法，表示这是一个类方法，而不是实例方法。
     @classmethod
     def from_runnable_config(
         cls, config: Optional[RunnableConfig] = None
