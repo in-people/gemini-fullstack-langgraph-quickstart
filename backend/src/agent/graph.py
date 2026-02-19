@@ -12,22 +12,22 @@ from langgraph.graph import START, END
 from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 
-# 配置日志 - 兼容Docker环境
+# Configure logging - compatible with Docker environment
 def setup_logging():
-    """设置日志配置，兼容Docker环境"""
-    # 在Docker环境中，优先使用标准输出，避免文件写入权限问题
+    """Setup logging configuration, compatible with Docker environment"""
+    # In Docker environment, prioritize stdout to avoid file write permission issues
     log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
     
-    # 配置日志格式
+    # Configure logging format
     logging.basicConfig(
         level=getattr(logging, log_level),
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.StreamHandler(),  # 标准输出，Docker友好的方式
+            logging.StreamHandler(),  # Standard output, Docker-friendly way
         ]
     )
     
-    # 如果需要文件日志且有写入权限，也添加文件处理器
+    # If file logging is needed and has write permissions, also add file handler
     try:
         log_dir = os.path.join(os.path.dirname(__file__), "logs")
         if not os.path.exists(log_dir):
@@ -39,9 +39,9 @@ def setup_logging():
         file_handler = logging.FileHandler(log_file, encoding='utf-8')
         file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
         logging.getLogger().addHandler(file_handler)
-        logging.info(f"📝 日志文件已启用: {log_file}")
+        logging.info(f"Log file enabled: {log_file}")
     except Exception as e:
-        logging.warning(f"⚠️  无法创建日志文件: {e}，将仅使用标准输出")
+        logging.warning(f"Unable to create log file: {e}, will use stdout only")
     
     return logging.getLogger(__name__)
 
@@ -72,9 +72,9 @@ from agent.utils import (
 # Load environment variables
 load_dotenv()
 
-# 记录环境变量加载状态
-api_key_status = "✅ 已设置" if os.getenv("ALI_QWEN_API_KEY") else "❌ 未设置"
-logger.info(f"环境变量加载完成 - ALI_QWEN_API_KEY: {api_key_status}")
+# Record environment variable loading status
+api_key_status = "Set" if os.getenv("ALI_QWEN_API_KEY") else "Not Set"
+logger.info(f"Environment variables loaded - ALI_QWEN_API_KEY: {api_key_status}")
 
 def load_key(key_name: str):
     """Load API key from environment"""
@@ -101,19 +101,19 @@ def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerati
     Returns:
         Dictionary with state update, including search_query key containing the generated queries
     """
-    logger.info("🔍 开始执行查询生成节点")
-    logger.info(f"📝 研究主题: {get_research_topic(state['messages'])}")
+    logger.info("Starting query generation node")
+    logger.info(f"Research topic: {get_research_topic(state['messages'])}")
     
     configurable = Configuration.from_runnable_config(config)
-    logger.debug(f"⚙️ 配置信息: 模型={configurable.query_generator_model}, 查询数量={configurable.number_of_initial_queries}")
+    logger.debug(f"Configuration: model={configurable.query_generator_model}, query count={configurable.number_of_initial_queries}")
 
     # check for custom initial search query count
     if state.get("initial_search_query_count") is None:
         state["initial_search_query_count"] = configurable.number_of_initial_queries
-        logger.debug(f"📊 设置初始查询数量: {configurable.number_of_initial_queries}")
+        logger.debug(f"Setting initial query count: {configurable.number_of_initial_queries}")
 
     # init Qwen Plus
-    logger.info("🤖 初始化Qwen Plus模型用于查询生成")
+    logger.info("Initializing Qwen Plus model for query generation")
     llm = ChatOpenAI(
         model=configurable.query_generator_model,
         temperature=1.0,
@@ -130,13 +130,13 @@ def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerati
         research_topic=get_research_topic(state["messages"]),
         number_queries=state["initial_search_query_count"],
     )
-    logger.debug(f"📄 提示词格式化完成，查询数量: {state['initial_search_query_count']}")
+    logger.debug(f"Prompt formatting complete, query count: {state['initial_search_query_count']}")
     
     # Generate the search queries
-    logger.info("🚀 调用LLM生成搜索查询...")
+    logger.info("Calling LLM to generate search queries...")
     result = structured_llm.invoke(formatted_prompt)
     
-    logger.info(f"✅ 查询生成完成，共生成 {len(result.query)} 个查询")
+    logger.info(f"Query generation complete, generated {len(result.query)} queries")
     for i, query in enumerate(result.query, 1):
         logger.info(f"   {i}. {query}")
     
@@ -167,15 +167,15 @@ def web_research(state: WebSearchState, config: RunnableConfig) -> OverallState:
     Returns:
         Dictionary with state update, including sources_gathered, research_loop_count, and web_research_results
     """
-    logger.info("🌐 开始执行网络研究节点")
-    logger.info(f"🔍 研究查询: {state['search_query']}")
+    logger.info("Starting web research node")
+    logger.info(f"Research query: {state['search_query']}")
     
     # Configure
     configurable = Configuration.from_runnable_config(config)
-    logger.debug(f"⚙️ 配置信息: 模型={configurable.query_generator_model}")
+    logger.debug(f"Configuration: model={configurable.query_generator_model}")
     
     # Simulate research by having the model generate content based on the query
-    logger.info("📚 生成研究提示词...")
+    logger.info("Generating research prompt...")
     formatted_prompt = f"""You are a research assistant. Based on the following research topic, generate a comprehensive response with relevant information:
 
 Research Topic: {state["search_query"]}
@@ -183,19 +183,19 @@ Research Topic: {state["search_query"]}
 Provide detailed information that would typically come from web research. Structure your response with headings, key findings, and relevant data."""
 
     # Use the client to generate research results
-    logger.info("🚀 调用LLM进行研究内容生成...")
+    logger.info("Calling LLM for research content generation...")
     response = client.invoke(formatted_prompt)
     
-    logger.info(f"✅ 研究完成，生成内容长度: {len(response.content)} 字符")
-    logger.debug(f"📄 研究内容预览: {response.content[:200]}...")
+    logger.info(f"Research complete, generated content length: {len(response.content)} characters")
+    logger.debug(f"Research content preview: {response.content[:200]}...")
     
     # For now, we'll use placeholder values for sources since we're not actually searching the web
     resolved_urls = {}  # Placeholder for resolved URLs
     sources_gathered = []  # No actual sources since we're not doing real search
-    logger.debug("📋 当前未使用实际网络搜索，返回模拟结果")
+    logger.debug("Currently not using actual web search, returning simulated results")
     
     # Return the generated content as research result
-    logger.info("📤 返回研究结果")
+    logger.info("Returning research results")
     return {
         "sources_gathered": sources_gathered,
         "search_query": [state["search_query"]],
@@ -217,15 +217,14 @@ def reflection(state: OverallState, config: RunnableConfig) -> ReflectionState:
     Returns:
         Dictionary with state update, including search_query key containing the generated follow-up query
     """
-    time.sleep(2)
-    logger.info("🧠 开始执行反思节点")
-    logger.info(f"📊 当前研究循环次数: {state.get('research_loop_count', 0) + 1}")
+    logger.info("Starting reflection node")
+    logger.info(f"Current research loop count: {state.get('research_loop_count', 0) + 1}")
     
     configurable = Configuration.from_runnable_config(config)
     # Increment the research loop count and get the reasoning model
     state["research_loop_count"] = state.get("research_loop_count", 0) + 1
     reasoning_model = state.get("reasoning_model", configurable.reflection_model)
-    logger.debug(f"⚙️ 配置信息: 反思模型={reasoning_model}")
+    logger.debug(f"Configuration: reflection model={reasoning_model}")
 
     # Format the prompt
     current_date = get_current_date()
@@ -234,10 +233,10 @@ def reflection(state: OverallState, config: RunnableConfig) -> ReflectionState:
         research_topic=get_research_topic(state["messages"]),
         summaries="\n\n---\n\n".join(state["web_research_result"]),
     )
-    logger.debug(f"📄 反思提示词格式化完成，研究结果数量: {len(state['web_research_result'])}")
+    logger.debug(f"Reflection prompt formatting complete, research result count: {len(state['web_research_result'])}")
     
     # init Reasoning Model
-    logger.info("🤖 初始化反思模型")
+    logger.info("Initializing reflection model")
     llm = ChatOpenAI(
         model=reasoning_model,
         temperature=1.0,
@@ -245,16 +244,16 @@ def reflection(state: OverallState, config: RunnableConfig) -> ReflectionState:
         api_key=load_key("ALI_QWEN_API_KEY"),
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
     )
-    logger.info("🚀 调用LLM进行反思分析...")
+    logger.info("Calling LLM for reflection analysis...")
     result = client.with_structured_output(Reflection).invoke(formatted_prompt)
     
-    logger.info(f"✅ 反思分析完成")
-    logger.info(f"   知识是否充分: {'是' if result.is_sufficient else '否'}")
-    logger.info(f"   知识缺口: {result.knowledge_gap}")
-    logger.info(f"   后续查询数量: {len(result.follow_up_queries)}")
+    logger.info(f"Reflection analysis complete")
+    logger.info(f"   Knowledge sufficient: {'Yes' if result.is_sufficient else 'No'}")
+    logger.info(f"   Knowledge gap: {result.knowledge_gap}")
+    logger.info(f"   Follow-up query count: {len(result.follow_up_queries)}")
     
     for i, query in enumerate(result.follow_up_queries, 1):
-        logger.info(f"   后续查询 {i}: {query}")
+        logger.info(f"   Follow-up query {i}: {query}")
 
     return {
         "is_sufficient": result.is_sufficient,
@@ -315,27 +314,26 @@ def finalize_answer(state: OverallState, config: RunnableConfig):
     Returns:
         Dictionary with state update, including running_summary key containing the formatted final summary with sources
     """
-    time.sleep(2)
-    logger.info("🎯 开始执行答案生成节点")
-    logger.info(f"📊 研究结果数量: {len(state['web_research_result'])}")
+    logger.info("Starting answer generation node")
+    logger.info(f"Research result count: {len(state['web_research_result'])}")
     
     configurable = Configuration.from_runnable_config(config)
     reasoning_model = state.get("reasoning_model") or configurable.answer_model
-    logger.debug(f"⚙️ 配置信息: 答案模型={reasoning_model}")
+    logger.debug(f"Configuration: answer model={reasoning_model}")
 
     # Format the prompt
-    logger.info("📚 格式化最终答案提示词...")
-    # 使用 \n --- \n\n 把列表元素拼接为一个长字符串
+    logger.info("Formatting final answer prompt...")
+    # Use \n --- \n\n to join list elements into a long string
     current_date = get_current_date()
     formatted_prompt = answer_instructions.format(
         current_date=current_date,
         research_topic=get_research_topic(state["messages"]),
         summaries="\n---\n\n".join(state["web_research_result"]),
     )
-    logger.debug(f"📄 答案提示词格式化完成，研究结果长度: {len(state['web_research_result'])}")
+    logger.debug(f"Answer prompt formatting complete, research result length: {len(state['web_research_result'])}")
 
     # init Reasoning Model, using Qwen
-    logger.info("🤖 初始化答案生成模型")
+    logger.info("Initializing answer generation model")
     llm = ChatOpenAI(
         model=reasoning_model,
         temperature=0,
@@ -343,15 +341,15 @@ def finalize_answer(state: OverallState, config: RunnableConfig):
         api_key=load_key("ALI_QWEN_API_KEY"),
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
     )
-    logger.info("🚀 调用LLM生成最终答案...")
+    logger.info("Calling LLM to generate final answer...")
     # result = llm.invoke(formatted_prompt)
     result = client.invoke(formatted_prompt)
     
-    logger.info(f"✅ 答案生成完成，内容长度: {len(result.content)} 字符")
-    logger.debug(f"📄 答案内容预览: {result.content[:200]}...")
+    logger.info(f"Answer generation complete, content length: {len(result.content)} characters")
+    logger.debug(f"Answer content preview: {result.content[:200]}...")
 
     # Since we don't have actual web sources, return the result as is
-    logger.info("📤 返回最终答案")
+    logger.info("Returning final answer")
     return {
         "messages": [AIMessage(content=result.content)],
         "sources_gathered": state["sources_gathered"],  # Pass through any existing sources

@@ -101,3 +101,43 @@ docker-compose up
 这个文件可以本地运行。
 测试graph的功能，程序执行过程。
 
+# pg
+             environment:
+数据库名      POSTGRES_DB: postgres  
+用户名        POSTGRES_USER: postgres
+密码          POSTGRES_PASSWORD: postgres
+
+## 进入容器langgraph-postgres
+docker exec -it langgraph-postgres psql -U postgres -d postgres
+--username 以postgre用户身份登录
+--dbname   连接名为postgres的数据库
+进入名为langgraph-postgres的容器，在里面启动psql工具，以postgres用户登录到**postgres**数据库
+
+## 常用操作
+
+```sql
+查看所有数据表
+postgres=# \dt                                                                                                                         List of relations                                                                 Schema |        Name        | Type  |  Owner                                                                           --------+--------------------+-------+----------                                                                       public | assistant          | table | postgres                                                                          public | assistant_versions | table | postgres                                                                          public | checkpoint_blobs   | table | postgres                                                                          public | checkpoint_writes  | table | postgres                                                                          public | checkpoints        | table | postgres                                                                          public | cron               | table | postgres                                                                          public | run                | table | postgres                                                                          public | schema_migrations  | table | postgres                                                                          public | store              | table | postgres                                                                          public | thread             | table | postgres                                                                          public | thread_ttl         | table | postgres                                                                         (11 rows)    
+
+-- 查看所有线程
+SELECT * FROM thread LIMIT 10;
+
+-- 查看最近的运行记录
+SELECT * FROM run ORDER BY created_at DESC LIMIT 10;
+```
+
+LangGraph数据表详解
+| 表名 | 作用 | 重要程度 |
+|------|------|----------|
+| `assistant` | 助手配置信息（名称、描述、配置等） | ⭐⭐⭐ |
+| `assistant_versions` | 助手的版本历史记录 | ⭐⭐ |
+| `checkpoints` | 核心表 - 存储对话/图的状态快照 | ⭐⭐⭐⭐⭐ |
+| `checkpoint_blobs` | 检查点的二进制数据（大对象） | ⭐⭐⭐⭐ |
+| `checkpoint_writes` | 检查点的写入操作记录 | ⭐⭐⭐⭐ |
+| `thread` | 核心表 - 会话线程（每次对话一个线程） | ⭐⭐⭐⭐⭐ |
+| `thread_ttl` | 线程的生存时间设置（自动清理） | ⭐⭐ |
+| `run` | 每次执行的运行记录 | ⭐⭐⭐ |
+| `store` | 通用键值存储（用户自定义数据） | ⭐⭐⭐ |
+| `cron` | 定时任务配置 | ⭐⭐ |
+| `schema_migrations` | 数据库版本迁移记录（系统表） | ⭐ |
+
