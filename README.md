@@ -6,13 +6,13 @@ This project demonstrates a fullstack application using a React frontend and a L
 
 ## Features
 
-- 💬 Fullstack application with a React frontend and LangGraph backend.
-- 🧠 Powered by a LangGraph agent for advanced research and conversational AI.
-- 🔍 Dynamic search query generation using Google Gemini models.
-- 🌐 Integrated web research via Google Search API.
-- 🤔 Reflective reasoning to identify knowledge gaps and refine searches.
-- 📄 Generates answers with citations from gathered sources.
-- 🔄 Hot-reloading for both frontend and backend during development.
+- Fullstack application with a React frontend and LangGraph backend.
+- Powered by a LangGraph agent for advanced research and conversational AI.
+- Dynamic search query generation using Google Gemini models.
+- Integrated web research via Google Search API.
+- Reflective reasoning to identify knowledge gaps and refine searches.
+- Generates answers with citations from gathered sources.
+- Hot-reloading for both frontend and backend during development.
 
 ## Project Structure
 
