@@ -88,6 +88,14 @@ client = ChatOpenAI(
     base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
 )
 
+web_search_client = ChatOpenAI(
+    temperature=0.0, 
+    model="qwen-plus", 
+    api_key=load_key("ALI_QWEN_API_KEY"), 
+    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    extra_body={"enable_search": True}
+)
+
 def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerationState:
     """LangGraph node that generates search queries based on the User's question.
 
@@ -153,7 +161,51 @@ def continue_to_web_research(state: QueryGenerationState):
         for idx, search_query in enumerate(state["search_query"])
     ]
 
+# def web_research(state: WebSearchState, config: RunnableConfig) -> OverallState:
+#     """LangGraph node that performs web research using Qwen API with web search capability.
 
+#     Executes a web search using Qwen Plus model with built-in web search functionality.
+
+#     Args:
+#         state: Current graph state containing the search query and research loop count
+#         config: Configuration for the runnable, including search API settings
+
+#     Returns:
+#         Dictionary with state update, including sources_gathered, research_loop_count, and web_research_results
+#     """
+#     # Configure
+#     configurable = Configuration.from_runnable_config(config)
+#     formatted_prompt = web_searcher_instructions.format(
+#         current_date=get_current_date(),
+#         research_topic=state["search_query"],
+#     )
+#     print("starting web_search\n")
+#     # Use Qwen API with web search enabled
+#     response = client.invoke(formatted_prompt)
+#     print("web search result\n")
+#     print(response)
+#     # For Qwen API, we need to extract content from AIMessage
+#     # Since Qwen doesn't provide grounding metadata like Gemini, we'll create a simple citation format
+#     # content = response.content if hasattr(response, 'content') else str(response)
+    
+#     # Create a simple citation format since we don't have grounding metadata
+#     # In a real implementation, you might want to extract URLs from the content
+#     # For now, we'll use the search query as the source
+#     # citation_text = f"{content}\n\n[Source: Web search for '{state['search_query']}']"
+
+#     # sources_gathered = [{
+#     #     "label": f"Source {state['id']}",
+#     #     "short_url": f"search://{state['id']}",
+#     #     "value": state["search_query"]
+#     # }]
+#     resolved_urls = {}  # Placeholder for resolved URLs
+#     sources_gathered = []  # Placeholder for sources gathered
+#     return {
+#         "sources_gathered": sources_gathered,
+#         "search_query": [state["search_query"]],
+#         "web_research_result": [response.content],
+#     }
+ 
 def web_research(state: WebSearchState, config: RunnableConfig) -> OverallState:
     """LangGraph node that simulates web research using the Qwen API.
 
@@ -202,7 +254,6 @@ Provide detailed information that would typically come from web research. Struct
         "web_research_result": [response.content],
     }
 
-    
 def reflection(state: OverallState, config: RunnableConfig) -> ReflectionState:
     """LangGraph node that identifies knowledge gaps and generates potential follow-up queries.
 

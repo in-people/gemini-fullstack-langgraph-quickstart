@@ -141,3 +141,6 @@ LangGraph数据表详解
 | `cron` | 定时任务配置 | ⭐⭐ |
 | `schema_migrations` | 数据库版本迁移记录（系统表） | ⭐ |
 
+
+# 一次性邮箱
+https://temp-mail.org/zh/
